@@ -1,9 +1,3 @@
-# Generate source files from a template based on the project name.
-# REMOVE after generating your project.
-configure_file("project.hpp.in" "${CMAKE_CURRENT_LIST_DIR}/inc/${PROJECT_NAME}/${PROJECT_NAME}.hpp")
-configure_file("project.cc.in"  "${CMAKE_CURRENT_LIST_DIR}/src/${PROJECT_NAME}.cc")
-# REMOVE end
-
 include(leatherman)
 get_commit_string(PROJECT_COMMIT)
 
@@ -18,28 +12,69 @@ configure_file("namespaces.dox.in" "${CMAKE_CURRENT_LIST_DIR}/docs/namespaces.do
 set(CMAKE_CXX_FLAGS ${${PROJECT_NAME_UPPER}_CXX_FLAGS})
 
 # Set prefix for logging messages.
-leatherman_logging_namespace("puppetlabs.${PROJECT_NAME}")
+leatherman_logging_namespace("puppetlabs.puppet-transaction")
 
 # Setup compiling the library.
 include_directories(inc ${Boost_INCLUDE_DIRS} ${LEATHERMAN_INCLUDE_DIRS})
 
-set(PROJECT_SOURCES "src/${PROJECT_NAME}.cc")
+set(PROJECT_SOURCES
+    "src/transaction.cc"
+    "src/catalog.cc"
+    "src/report.cc"
+    "src/ruby/value_wrapper.cc"
+    "src/ruby/rb_catalog.cc"
+    "src/ruby/rb_report.cc"
+    "src/ruby/module.cc")
 
 ## An object target is generated that can be used by both the library and test executable targets.
 ## Without the intermediate target, unexported symbols can't be tested.
-add_library(libprojectsrc OBJECT ${PROJECT_SOURCES})
-set_target_properties(libprojectsrc PROPERTIES POSITION_INDEPENDENT_CODE true)
+add_library(libpuppet-transactionsrc OBJECT ${PROJECT_SOURCES})
+set_target_properties(libpuppet-transactionsrc PROPERTIES POSITION_INDEPENDENT_CODE true)
 
-add_library(lib${PROJECT_NAME} $<TARGET_OBJECTS:libprojectsrc>)
-set_target_properties(lib${PROJECT_NAME} PROPERTIES VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
-target_link_libraries(lib${PROJECT_NAME}
+add_library(libpuppet_transaction SHARED $<TARGET_OBJECTS:libpuppet-transactionsrc>)
+set_target_properties(libpuppet-transactionsrc PROPERTIES POSITION_INDEPENDENT_CODE true)
+set_target_properties(libpuppet_transaction PROPERTIES VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" PREFIX "" SUFFIX ".so" IMPORT_PREFIX "" IMPORT_SUFFIX ".so.a")
+
+target_link_libraries(libpuppet_transaction
     ${LEATHERMAN_LIBRARIES}
     ${Boost_LIBRARIES}
 )
 
-symbol_exports(lib${PROJECT_NAME} "${CMAKE_CURRENT_LIST_DIR}/inc/${PROJECT_NAME}/export.h")
+symbol_exports(libpuppet_transaction "${CMAKE_CURRENT_LIST_DIR}/inc/${PROJECT_NAME}/export.h")
 
-leatherman_install(lib${PROJECT_NAME})
-install(DIRECTORY inc/${PROJECT_NAME} DESTINATION include)
+leatherman_install(libpuppet_transaction)
+
+if (WIN32)
+    set(LIBTRANSACTION_INSTALL_DESTINATION bin)
+else()
+    # TODO: lib64 for certain operating systems?
+    set(LIBTRANSACTION_INSTALL_DESTINATION lib)
+endif()
+
+
+set(RUBY_LIB_INSTALL "" CACHE PATH "Specify the location to install facter.rb")
+if(RUBY_LIB_INSTALL)
+    set(RUBY_VENDORDIR ${RUBY_LIB_INSTALL}) 
+else()
+    # Disable actually installing facter.rb if Ruby is not present and RUBY_LIB_INSTALL not specified.
+    if (RUBY_FOUND)
+        message(STATUS "Ruby ${RUBY_VERSION} found.")
+
+        execute_process(COMMAND ${RUBY_EXECUTABLE} -rrbconfig -e "puts RbConfig::CONFIG['vendordir']" OUTPUT_VARIABLE RUBY_VENDORDIR_OUT)
+        string(STRIP ${RUBY_VENDORDIR_OUT} RUBY_VENDORDIR)
+    endif()
+endif()
+
+if(RUBY_VENDORDIR)
+    file(RELATIVE_PATH LIBTRANSACTION_INSTALL_RELATIVE ${RUBY_VENDORDIR} ${CMAKE_INSTALL_PREFIX})
+    configure_file (
+        "puppet-transaction.rb.in"
+        "${CMAKE_BINARY_DIR}/lib/puppet-transaction.rb"
+    )
+
+    message(STATUS "\"make install\" will install puppet-transaction.rb to ${RUBY_VENDORDIR}")
+    install(FILES ${CMAKE_BINARY_DIR}/lib/puppet-transaction.rb DESTINATION ${RUBY_VENDORDIR})
+endif()
+
 
 add_subdirectory(tests)

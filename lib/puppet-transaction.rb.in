@@ -1,0 +1,10 @@
+module PuppetTransaction
+  # Simply require libtransaction.so; this will define all of the Transaction API
+  transaction_dir = File.join(File.expand_path("#{File.dirname(__FILE__)}"), '${LIBTRANSACTION_INSTALL_RELATIVE}')
+  # This is a cmake pre-processor check. On *nix it will end up '' == '1'
+  # On windows, where we want the changes it will be '1' == '1'
+  if '${WIN32}' == '1'
+    ENV['PATH'] = "#{File.join(transaction_dir, 'bin')}#{File::PATH_SEPARATOR}#{ENV['PATH']}"
+  end
+  require "#{transaction_dir}/${LIBTRANSACTION_INSTALL_DESTINATION}/libpuppet_transaction.so"
+end

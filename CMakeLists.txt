@@ -19,12 +19,19 @@ endif()
 enable_testing()
 
 # Leatherman setup
-SET(LEATHERMAN_COMPONENTS locale catch nowide logging)
+SET(LEATHERMAN_COMPONENTS locale catch nowide logging ruby)
 find_package(Leatherman REQUIRED COMPONENTS ${LEATHERMAN_COMPONENTS})
 
 # Now that we have leatherman, we can pull in its options file, which
 # we need for finding all our other libraries.
 include(options)
+
+# Set RPATH if not installing to a system library directory
+list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" INSTALL_IS_SYSTEM_DIR)
+if ("${INSTALL_IS_SYSTEM_DIR}" STREQUAL "-1")
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+endif()
+
 ## Pull in common cflags setting from leatherman. Don't override CMAKE_CXX_FLAGS at the project root to avoid impacting 3rd party code.
 include(cflags)
 set(${PROJECT_NAME_UPPER}_CXX_FLAGS "${LEATHERMAN_CXX_FLAGS}")
@@ -33,7 +40,9 @@ add_definitions(${LEATHERMAN_DEFINITIONS})
 include(leatherman)
 
 # Add other dependencies
-find_package(Boost 1.54 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.54 REQUIRED COMPONENTS program_options regex)
+
+find_package(Ruby 1.9)
 
 # Display a summary of the features
 include(FeatureSummary)
