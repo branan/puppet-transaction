@@ -11,7 +11,7 @@ and to use many of the libraries in
 [Leatherman](https://github.com/puppetlabs/leatherman).
 
 In order to use this you will need the
-[`native_trans` branch ofPuppet](https://github.com/branan/puppet/tree/native_trans)
+[`native_trans` branch of Puppet](https://github.com/branan/puppet/tree/native_trans)
 
 ## Build the library
 
