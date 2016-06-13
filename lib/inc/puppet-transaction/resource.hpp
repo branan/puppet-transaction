@@ -1,0 +1,27 @@
+#pragma once
+
+#include <memory>
+#include <string>
+#include <vector>
+
+namespace puppet_transaction {
+
+    class parameter;
+    class value;
+
+    class resource {
+    public:
+        virtual ~resource();
+
+        virtual std::vector<std::string> get_before() const = 0;
+        virtual std::vector<std::string> get_require() const = 0;
+        virtual std::vector<std::string> get_notify() const = 0;
+        virtual std::vector<std::string> get_subscribe() const = 0;
+
+        virtual std::unique_ptr<parameter> get_parameter(std::string) const = 0;
+        virtual void each_property(std::function<void(std::unique_ptr<parameter>)>) const = 0;
+
+        virtual std::unique_ptr<value> retrieve() const = 0;
+        virtual bool is_present(value*) const = 0;
+    };
+}

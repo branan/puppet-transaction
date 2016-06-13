@@ -21,9 +21,11 @@ set(PROJECT_SOURCES
     "src/transaction.cc"
     "src/catalog.cc"
     "src/report.cc"
+    "src/resource.cc"
     "src/ruby/value_wrapper.cc"
     "src/ruby/rb_catalog.cc"
     "src/ruby/rb_report.cc"
+    "src/ruby/rb_resource.cc"
     "src/ruby/module.cc")
 
 ## An object target is generated that can be used by both the library and test executable targets.

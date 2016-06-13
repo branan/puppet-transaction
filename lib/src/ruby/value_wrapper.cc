@@ -4,7 +4,8 @@ using namespace leatherman::ruby;
 
 namespace puppet_transaction { namespace ruby {
     value_wrapper::value_wrapper(VALUE self)
-         : _self(self) {}
+         : _self(self) {
+    }
 
     void value_wrapper::mark() const
     {

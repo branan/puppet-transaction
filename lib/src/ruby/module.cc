@@ -172,6 +172,11 @@ static VALUE transaction_get_report(VALUE self)
 
 static VALUE transaction_evaluate(VALUE self)
 {
+    auto& ruby = api::instance();
+    if (ruby.rb_block_given_p()) {
+        ruby.rb_raise(*ruby.rb_eArgError, "Transaction::evaluate no longer accepts a block");
+    }
+    ruby.to_native<transaction>(self)->evaluate();
     return api::instance().nil_value();
 }
 

@@ -7,7 +7,7 @@
 
 namespace puppet_transaction { namespace ruby {
 
-    class rb_report : public value_wrapper, public report {
+    class rb_report : public report, public value_wrapper {
     public:
         rb_report(leatherman::ruby::VALUE self);
         ~rb_report();
