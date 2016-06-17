@@ -3,13 +3,11 @@
 using namespace leatherman::ruby;
 
 namespace puppet_transaction { namespace ruby {
-    value_wrapper::value_wrapper(VALUE self)
-         : _self(self) {
-    }
+    value_wrapper::value_wrapper(VALUE self, value_registry* registry)
+         : _self(self), _registry(registry) { }
 
-    void value_wrapper::mark() const
+    value_wrapper::~value_wrapper()
     {
-        auto& ruby = api::instance();
-        ruby.rb_gc_mark(_self);
+        _registry->del(_self);
     }
 }}

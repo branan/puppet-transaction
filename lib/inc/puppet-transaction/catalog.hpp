@@ -15,7 +15,7 @@ namespace puppet_transaction {
         virtual bool has_version() const = 0;
         virtual std::string version() const = 0;
         virtual void each_key(std::function<void(const std::string&)>) const = 0;
-        virtual std::unique_ptr<resource> get_resource(const std::string&) const = 0;
+        virtual std::shared_ptr<resource> get_resource(const std::string&) const = 0;
     };
 
 }

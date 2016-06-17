@@ -1,6 +1,7 @@
 #include "internal/ruby/module.hpp"
 #include "internal/ruby/rb_report.hpp"
 #include "internal/ruby/rb_catalog.hpp"
+#include "internal/ruby/value_registry.hpp"
 #include <puppet-transaction/transaction.hpp>
 #include <puppet-transaction/export.h>
 
@@ -85,6 +86,14 @@ namespace puppet_transaction { namespace ruby {
     };
 
     unique_ptr<require_context> require_context::_instance;
+
+    struct ruby_transaction {
+        ruby_transaction(shared_ptr<report> _report, shared_ptr<catalog> _catalog, unique_ptr<value_registry> registry)
+             : _transaction(_report, _catalog), _registry(move(registry)) {}
+
+        transaction _transaction;
+        unique_ptr<value_registry> _registry;
+    };
 }}
 
 
@@ -124,12 +133,8 @@ extern "C" {
 
 static void transaction_mark(void* value)
 {
-    transaction* the_transaction = reinterpret_cast<transaction*>(value);
-    auto the_catalog = the_transaction->get_catalog();
-    auto the_report = the_transaction->get_report();
-
-    dynamic_cast<rb_catalog*>(the_catalog)->mark();
-    dynamic_cast<rb_report*>(the_report)->mark();
+    ruby_transaction* the_transaction = reinterpret_cast<ruby_transaction*>(value);
+    (*the_transaction)._registry->mark();
 }
 
 static void transaction_free(void* value)
@@ -155,17 +160,19 @@ static VALUE transaction_new(VALUE klass, VALUE the_catalog, VALUE the_report, V
         auto report_klass = ruby.lookup({"Puppet", "Transaction", "Report"});
         the_report = ruby.rb_funcall(report_klass, new_fun, 3, apply, version, environment);
     }
-    
-    transaction* value = new transaction(unique_ptr<report>(new rb_report(the_report)),
-                                         unique_ptr<catalog>(new rb_catalog(the_catalog)));
+
+    std::unique_ptr<value_registry> registry(new value_registry);
+    auto catalog = value_wrapper::wrap<rb_catalog>(the_catalog, registry.get());
+    auto report = value_wrapper::wrap<rb_report>(the_report, registry.get());
+    ruby_transaction* value = new ruby_transaction(report, catalog, move(registry));
     return ruby.rb_data_object_alloc(klass, value, transaction_mark, transaction_free);
 }
 
 static VALUE transaction_get_report(VALUE self)
 {
     auto& ruby = api::instance();
-    auto the_transaction = ruby.to_native<transaction>(self);
-    auto the_report = the_transaction->get_report();
+    auto the_transaction = ruby.to_native<ruby_transaction>(self);
+    auto the_report = the_transaction->_transaction.get_report();
 
     return dynamic_cast<rb_report*>(the_report)->self();
 }
@@ -176,7 +183,7 @@ static VALUE transaction_evaluate(VALUE self)
     if (ruby.rb_block_given_p()) {
         ruby.rb_raise(*ruby.rb_eArgError, "Transaction::evaluate no longer accepts a block");
     }
-    ruby.to_native<transaction>(self)->evaluate();
+    ruby.to_native<ruby_transaction>(self)->_transaction.evaluate();
     return api::instance().nil_value();
 }
 

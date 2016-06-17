@@ -34,35 +34,35 @@ static vector<string> get_dep_param(VALUE res, string key) {
 }
 
 namespace puppet_transaction { namespace ruby {
-    rb_resource::rb_resource(VALUE self)
-         : value_wrapper(self) {}
+    rb_resource::rb_resource(VALUE self, value_registry* registry)
+         : value_wrapper(self, registry) {}
 
     rb_resource::~rb_resource() {}
 
     vector<string> rb_resource::get_before() const {
-        return get_dep_param(self(), "before");
+        return get_dep_param(_self, "before");
     }
 
     vector<string> rb_resource::get_require() const {
-        return get_dep_param(self(), "require");
+        return get_dep_param(_self, "require");
     }
 
     vector<string> rb_resource::get_notify() const {
-        return get_dep_param(self(), "notify");
+        return get_dep_param(_self, "notify");
     }
 
     vector<string> rb_resource::get_subscribe() const {
-        return get_dep_param(self(), "subscribe");
+        return get_dep_param(_self, "subscribe");
     }
 
-    unique_ptr<parameter> rb_resource::get_parameter(string) const {
+    shared_ptr<parameter> rb_resource::get_parameter(string) const {
         return nullptr;
     }
 
-    void rb_resource::each_property(function<void(unique_ptr<parameter>)>) const {
+    void rb_resource::each_property(function<void(shared_ptr<parameter>)>) const {
     }
 
-    unique_ptr<value> rb_resource::retrieve() const {
+    shared_ptr<value> rb_resource::retrieve() const {
         return nullptr;
     }
 

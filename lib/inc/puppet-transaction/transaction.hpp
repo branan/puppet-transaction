@@ -15,7 +15,7 @@ namespace puppet_transaction {
     class transaction
     {
     public:
-        transaction(std::unique_ptr<report>, std::unique_ptr<catalog>);
+        transaction(std::shared_ptr<report>, std::shared_ptr<catalog>);
 
         report* get_report() const { return _report.get(); }
         catalog* get_catalog() const { return _catalog.get(); }
@@ -27,8 +27,8 @@ namespace puppet_transaction {
         void evaluate_resource(resource*);
         void sync_property(parameter*, value*);
 
-        std::unique_ptr<report> _report;
-        std::unique_ptr<catalog> _catalog;
+        std::shared_ptr<report> _report;
+        std::shared_ptr<catalog> _catalog;
 
         std::list<std::string> _resources;
         std::map<std::string, std::list<std::string>> _blockers;

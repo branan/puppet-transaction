@@ -22,6 +22,7 @@ set(PROJECT_SOURCES
     "src/catalog.cc"
     "src/report.cc"
     "src/resource.cc"
+    "src/ruby/value_registry.cc"
     "src/ruby/value_wrapper.cc"
     "src/ruby/rb_catalog.cc"
     "src/ruby/rb_report.cc"

@@ -12,7 +12,7 @@ using namespace puppet_transaction;
 
 namespace puppet_transaction {
 
-    transaction::transaction(unique_ptr<report> r, unique_ptr<catalog> c)
+    transaction::transaction(shared_ptr<report> r, shared_ptr<catalog> c)
          : _report(move(r)), _catalog(move(c)) {}
 
     void transaction::evaluate()
@@ -100,7 +100,7 @@ namespace puppet_transaction {
 //            sync_property(ensure_param.get(), current.get());
         } else {
             if (res->is_present(current.get())) {
-                res->each_property([&](unique_ptr<parameter> param) {
+                res->each_property([&](shared_ptr<parameter> param) {
 //                    sync_property(param.get(), current.get());
                 });
             }
