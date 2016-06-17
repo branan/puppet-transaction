@@ -38,24 +38,31 @@ namespace puppet_transaction {
 
         // TODO: add autorelations
 
-        while (!_resources.empty()) {
-            auto unblocked = find_if(_blockers.begin(), _blockers.end(), [](pair<string, list<string>> val) {
-                return val.second.empty();
-            });
+        std::list<std::string> ready;
+        for (const auto& res : _resources) {
+            if (_blockers[res].empty()) {
+                ready.push_front(res);
+            }
+        }
 
-            if(unblocked == _blockers.end()) {
+        while (!_resources.empty()) {
+            if(ready.empty()) {
                 // TODO: handle providerless types etc.
                 LOG_ERROR("Could not evaluate - no unblocked resources");
                 return;
             }
 
-            auto resource = unblocked->first;
+            auto resource = ready.front();
+            ready.pop_front();
             _resources.remove(resource);
             evaluate_resource(_catalog->get_resource(resource).get());
             for(const auto& blockee : _blockees[resource]) {
                 _blockers[blockee].remove(resource);
+                if (_blockers[blockee].empty()) {
+                    ready.push_front(blockee);
+                }
             }
-            _blockers.erase(unblocked);
+            _blockers.erase(resource);
         }
     }
 
@@ -98,6 +105,7 @@ namespace puppet_transaction {
         auto current = res->retrieve();
         auto ensure_param = res->get_parameter("ensure");
         if (ensure_param && ensure_param->has_should()) {
+            // right now this doesn't ever get called due to stubbed methods
         } else {
             if (res->is_present(current.get())) {
                 res->each_property([&](shared_ptr<property> prop) {
