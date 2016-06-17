@@ -1,5 +1,7 @@
 #include "internal/ruby/rb_resource.hpp"
 
+#include "internal/ruby/rb_parameter.hpp"
+#include "internal/ruby/rb_property.hpp"
 #include <puppet-transaction/parameter.hpp>
 #include <puppet-transaction/value.hpp>
 
@@ -55,18 +57,40 @@ namespace puppet_transaction { namespace ruby {
         return get_dep_param(_self, "subscribe");
     }
 
-    shared_ptr<parameter> rb_resource::get_parameter(string) const {
-        return nullptr;
+    shared_ptr<parameter> rb_resource::get_parameter(string name) const {
+        return nullptr; /*
+        auto& ruby = api::instance();
+        auto param_fun = ruby.rb_intern("parameter");
+
+        auto param = ruby.rb_funcall(_self, param_fun, 1, ruby.utf8_value(name));
+        if (param == ruby.nil_value()) {
+            return nullptr;
+        }
+        return value_wrapper::wrap<rb_parameter>(param, _registry); */
     }
 
-    void rb_resource::each_property(function<void(shared_ptr<parameter>)>) const {
+    void rb_resource::each_property(function<void(shared_ptr<property>)> cb) const {
+        auto& ruby = api::instance();
+        auto props_fun = ruby.rb_intern("properties");
+
+        auto props = ruby.rb_funcall(_self, props_fun, 0);
+        ruby.array_for_each(props, [&](VALUE v) {
+            cb(value_wrapper::wrap<rb_property>(v, _registry));
+            return true;
+        });
     }
 
     shared_ptr<value> rb_resource::retrieve() const {
-        return nullptr;
+        auto& ruby = api::instance();
+        auto retrieve_fun = ruby.rb_intern("retrieve");
+        auto to_hash_fun = ruby.rb_intern("to_hash");
+
+        auto current = ruby.rb_funcall(_self, retrieve_fun, 0);
+        auto result = ruby.rb_funcall(current, to_hash_fun, 0);
+        return value_wrapper::wrap<value_wrapper>(result, _registry);
     }
 
     bool rb_resource::is_present(value*) const {
-        return false;
+        return true;
     }
 }}

@@ -20,11 +20,16 @@ include_directories(inc ${Boost_INCLUDE_DIRS} ${LEATHERMAN_INCLUDE_DIRS})
 set(PROJECT_SOURCES
     "src/transaction.cc"
     "src/catalog.cc"
+    "src/parameter.cc"
+    "src/property.cc"
     "src/report.cc"
     "src/resource.cc"
+    "src/value.cc"
     "src/ruby/value_registry.cc"
     "src/ruby/value_wrapper.cc"
     "src/ruby/rb_catalog.cc"
+    "src/ruby/rb_parameter.cc"
+    "src/ruby/rb_property.cc"
     "src/ruby/rb_report.cc"
     "src/ruby/rb_resource.cc"
     "src/ruby/module.cc")

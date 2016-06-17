@@ -17,7 +17,7 @@ namespace puppet_transaction { namespace ruby {
         std::vector<std::string> get_subscribe() const override;
 
         std::shared_ptr<parameter> get_parameter(std::string) const override;
-        void each_property(std::function<void(std::shared_ptr<parameter>)>) const override;
+        void each_property(std::function<void(std::shared_ptr<property>)>) const override;
 
         std::shared_ptr<value> retrieve() const override;
         virtual bool is_present(value*) const override;

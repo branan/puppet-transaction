@@ -1,6 +1,7 @@
 #include <puppet-transaction/catalog.hpp>
 #include <puppet-transaction/transaction.hpp>
 #include <puppet-transaction/parameter.hpp>
+#include <puppet-transaction/property.hpp>
 #include <puppet-transaction/report.hpp>
 #include <puppet-transaction/resource.hpp>
 #include <puppet-transaction/value.hpp>
@@ -97,11 +98,12 @@ namespace puppet_transaction {
         auto current = res->retrieve();
         auto ensure_param = res->get_parameter("ensure");
         if (ensure_param && ensure_param->has_should()) {
-//            sync_property(ensure_param.get(), current.get());
         } else {
             if (res->is_present(current.get())) {
-                res->each_property([&](shared_ptr<parameter> param) {
-//                    sync_property(param.get(), current.get());
+                res->each_property([&](shared_ptr<property> prop) {
+                    if (!prop->is_in_sync(current.get())) {
+                        prop->sync();
+                    }
                 });
             }
         }

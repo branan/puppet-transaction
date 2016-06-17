@@ -2,12 +2,15 @@
 
 #include "internal/ruby/value_registry.hpp"
 
+#include <puppet-transaction/value.hpp>
+
 #include <leatherman/ruby/api.hpp>
 #include <memory>
 
 namespace puppet_transaction { namespace ruby {
-    class value_wrapper {
+    class value_wrapper : public value {
     public:
+        value_wrapper(leatherman::ruby::VALUE, value_registry*);
         virtual ~value_wrapper();
 
         leatherman::ruby::VALUE self() const { return _self; }
@@ -23,8 +26,7 @@ namespace puppet_transaction { namespace ruby {
         }
 
     protected:
-        value_wrapper(leatherman::ruby::VALUE, value_registry*);
         leatherman::ruby::VALUE _self;
-        value_registry* _registry;
+        mutable value_registry* _registry;
     };
 }}

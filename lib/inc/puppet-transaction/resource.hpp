@@ -7,6 +7,7 @@
 namespace puppet_transaction {
 
     class parameter;
+    class property;
     class value;
 
     class resource {
@@ -19,7 +20,7 @@ namespace puppet_transaction {
         virtual std::vector<std::string> get_subscribe() const = 0;
 
         virtual std::shared_ptr<parameter> get_parameter(std::string) const = 0;
-        virtual void each_property(std::function<void(std::shared_ptr<parameter>)>) const = 0;
+        virtual void each_property(std::function<void(std::shared_ptr<property>)>) const = 0;
 
         virtual std::shared_ptr<value> retrieve() const = 0;
         virtual bool is_present(value*) const = 0;

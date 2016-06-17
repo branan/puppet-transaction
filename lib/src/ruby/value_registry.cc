@@ -7,7 +7,11 @@ namespace puppet_transaction { namespace ruby {
     void value_registry::add(VALUE value, weak_ptr<value_wrapper> wrapper) {
         auto res = _values.emplace(std::make_pair(value, wrapper));
         if (!res.second) {
-            throw std::logic_error("Cannot have more than one C++ wrapper for a single ruby VALUE");
+            if (_values[value].expired()) {
+                _values[value] = wrapper;
+            } else {
+                throw std::logic_error("Cannot have more than one C++ wrapper for a single ruby VALUE");
+            }
         }
     }
 
