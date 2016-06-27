@@ -103,13 +103,13 @@ namespace puppet_transaction {
     void transaction::evaluate_resource(resource* res)
     {
         auto current = res->retrieve();
-        auto ensure_param = res->get_parameter("ensure");
-        if (ensure_param && ensure_param->has_should()) {
-            // right now this doesn't ever get called due to stubbed methods
+        auto ensure_param = dynamic_pointer_cast<property>(res->get_parameter("ensure"));
+        if (ensure_param && ensure_param->has_should() && !ensure_param->is_in_sync(current.get())) {
+            ensure_param->sync();
         } else {
             if (res->is_present(current.get())) {
                 res->each_property([&](shared_ptr<property> prop) {
-                    if (!prop->is_in_sync(current.get())) {
+                    if (prop->has_should() && !prop->is_in_sync(current.get())) {
                         prop->sync();
                     }
                 });

@@ -7,7 +7,14 @@ namespace puppet_transaction { namespace ruby {
          : value_wrapper(value, registry) { }
 
     bool rb_parameter::has_should() const {
-        // TODO
-        return false;
+        auto& ruby = api::instance();
+
+        auto should_fun = ruby.rb_intern("should");
+        auto should = ruby.rb_funcall(_self, should_fun, 0);
+        if (should == ruby.nil_value()) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }}

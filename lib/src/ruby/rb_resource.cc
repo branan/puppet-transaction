@@ -58,7 +58,6 @@ namespace puppet_transaction { namespace ruby {
     }
 
     shared_ptr<parameter> rb_resource::get_parameter(string name) const {
-        return nullptr; /*
         auto& ruby = api::instance();
         auto param_fun = ruby.rb_intern("parameter");
 
@@ -66,7 +65,13 @@ namespace puppet_transaction { namespace ruby {
         if (param == ruby.nil_value()) {
             return nullptr;
         }
-        return value_wrapper::wrap<rb_parameter>(param, _registry); */
+
+        auto property_klass = ruby.lookup({"Puppet", "Property"});
+        if (ruby.is_a(param, property_klass)) {
+            return value_wrapper::wrap<rb_property>(param, _registry);
+        } else {
+            return value_wrapper::wrap<rb_parameter>(param, _registry);
+        }
     }
 
     void rb_resource::each_property(function<void(shared_ptr<property>)> cb) const {
